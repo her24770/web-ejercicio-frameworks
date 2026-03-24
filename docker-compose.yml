@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  # ── Backend: Django REST API ──────────────────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    volumes:
+      # Volumen montado para live-reload en desarrollo
+      - ./backend:/app
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - PYTHONUNBUFFERED=1
+    networks:
+      - voting-network
+
+  # ── Frontend: Svelte + Vite ───────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Volumen montado para live-reload en desarrollo
+      - ./frontend:/app
+      # Evitar que el node_modules del host sobreescriba el del contenedor
+      - /app/node_modules
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - voting-network
+
+networks:
+  voting-network:
+    driver: bridge
